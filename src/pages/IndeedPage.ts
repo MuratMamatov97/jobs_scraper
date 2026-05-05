@@ -6,25 +6,28 @@ import { Job } from "../types/job.types";
 export class IndeedPage extends BasePage {
 
   async open(): Promise<void> {
-    const { query, location } = CONFIG.search;
-    const url = `${CONFIG.baseUrl}/jobs?q=${query}&l=${location}`;
-    await this.navigate(url);
-    await this.randomSleep();
-  }
+  const { query, location } = CONFIG.search;
+  const url = `${CONFIG.indeedUrl}/jobs?q=${query}&l=${location}&fromage=7`;
+  await this.navigate(url);
+  await this.randomSleep();
+}
 
   async rejectCookies(): Promise<void> {
-    try {
-      await this.page.click(CONFIG.selectors.cookieReject);
-      await this.randomSleep();
-      console.log("Cookies rejected");
-    } catch {
-      console.log("Cookie banner not found, skipping");
-    }
+  try {
+    await this.page.waitForSelector(CONFIG.selectors.cookieReject, { timeout: 5000 });
+    await this.page.mouse.move(100, 100);
+    await this.page.mouse.move(200, 200);
+    await this.page.click(CONFIG.selectors.cookieReject);
+    await this.randomSleep();
+    console.log("Cookies rejected");
+  } catch {
+    console.log("Cookie banner not found, skipping");
   }
+}
 
   async getJobs(): Promise<Job[]> {
     const { jobCard, title, company, location, link } = CONFIG.selectors;
-    const baseUrl = CONFIG.baseUrl;
+    const indeedUrl = CONFIG.indeedUrl;
 
     const jobs = await this.page.$$eval(
       jobCard,
@@ -39,11 +42,11 @@ export class IndeedPage extends BasePage {
             title: titleEl?.trim(),
             company: companyEl?.trim(),
             location: locationEl?.trim(),
-            link: linkEl ? selectors.baseUrl + linkEl : undefined,
+            link: linkEl ? selectors.indeedUrl + linkEl : undefined,
           };
         });
       },
-      { title, company, location, link, baseUrl }
+      { title, company, location, link, indeedUrl }
     );
 
     return jobs;
